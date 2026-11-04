@@ -18,11 +18,42 @@ export interface UserProfile {
   /** Bloqueios de streak que protegem um dia perdido. */
   streakFreezes: number;
   hearts: number;
+  /** Erros permitidos (corações máximos), configurável no perfil. */
+  maxHearts: number;
   /** Momento (ms) da última recarga de corações. */
   heartsUpdatedAt: number;
   completedLevels: string[];
   badges: string[];
   createdAt: number;
+  /** Lição começada e não terminada: ao voltar, continua de onde parou. */
+  lessonInProgress: LessonProgress | null;
+  /** Histórico de lições, treinos e reinícios (mais recentes primeiro). */
+  history: HistoryEntry[];
+  /** Total de respostas certas e erradas de todos os tempos. */
+  answers: { correct: number; wrong: number };
+  /** lastActiveDate que já gerou um reinício por inatividade (evita repetir). */
+  inactivityResetFor: string | null;
+  /** Aviso a mostrar na trilha (ex.: etapa reiniciada). */
+  notice: string | null;
+}
+
+export interface LessonProgress {
+  levelId: string;
+  practice: boolean;
+  /** Ids dos exercícios na ordem da fila (erros voltam para o fim). */
+  queue: string[];
+  idx: number;
+  mistakes: number;
+  solved: number;
+  updatedAt: number;
+}
+
+export interface HistoryEntry {
+  at: number;
+  kind: 'lesson' | 'practice' | 'reset';
+  title: string;
+  xp: number;
+  mistakes?: number;
 }
 
 export type ExerciseType = 'speaking' | 'word-bank' | 'multiple-choice' | 'fill-blank' | 'listening';

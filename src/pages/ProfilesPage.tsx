@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Plus, Upload } from 'lucide-react';
 import type { AgeGroup } from '../types';
 import { useStore } from '../store/AppStore';
-import { AGE_GROUPS, newProfile } from '../lib/rules';
+import { AGE_GROUPS, MAX_HEARTS, newProfile } from '../lib/rules';
+import { HeartsPicker } from '../components/HeartsPicker';
 import { Button } from '../components/Button';
 import { ImportButton } from '../components/BackupControls';
 
@@ -61,11 +62,12 @@ function CreateProfile({ onDone, canCancel }: { onDone: () => void; canCancel: b
   const [name, setName] = useState('');
   const [avatar, setAvatar] = useState(AVATARS[0]);
   const [ageGroup, setAgeGroup] = useState<AgeGroup>('adults');
+  const [hearts, setHearts] = useState(MAX_HEARTS);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
-    addProfile(newProfile(name, avatar, ageGroup));
+    addProfile(newProfile(name, avatar, ageGroup, hearts));
     onDone();
   }
 
@@ -121,6 +123,12 @@ function CreateProfile({ onDone, canCancel }: { onDone: () => void; canCancel: b
             </button>
           ))}
         </div>
+      </fieldset>
+
+      <fieldset>
+        <legend className="mb-1 font-bold text-slate-600">Erros permitidos</legend>
+        <p className="mb-2 text-sm text-slate-500">Dá para mudar depois na tela de Perfil.</p>
+        <HeartsPicker value={hearts} onChange={setHearts} />
       </fieldset>
 
       <div className="flex gap-3">

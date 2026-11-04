@@ -8,7 +8,20 @@ const CONTRACTIONS: Record<string, string> = {
   "he's": 'he is',
   "what's": 'what is',
   "don't": 'do not',
+  "doesn't": 'does not',
+  "can't": 'can not',
+  cannot: 'can not',
+  "isn't": 'is not',
+  "aren't": 'are not',
+  "won't": 'will not',
+  "let's": 'let us',
+  "that's": 'that is',
+  "we're": 'we are',
+  "they're": 'they are',
+  "i'll": 'i will',
+  "you'll": 'you will',
   "i'd": 'i would',
+  "i've": 'i have',
 };
 
 export function normalize(text: string) {

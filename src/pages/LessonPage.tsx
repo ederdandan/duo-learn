@@ -3,7 +3,7 @@ import { CheckCircle2, Heart, Volume2, X, XCircle } from 'lucide-react';
 import type { Exercise } from '../types';
 import { findLevel } from '../data/curriculum';
 import { useStore } from '../store/AppStore';
-import { AGE_GROUPS, BADGES, completeLesson, loseHeart, type LessonReward } from '../lib/rules';
+import { AGE_GROUPS, BADGES, completeLesson, loseHeart, recordAnswer, type LessonReward } from '../lib/rules';
 import { sounds } from '../lib/sounds';
 import { speak } from '../lib/speech';
 import { Button } from '../components/Button';
@@ -26,13 +26,24 @@ type Feedback = { correct: boolean; answer: string } | null;
 export function LessonPage({ levelId, practice, onExit }: Props) {
   const { active, updateActive } = useStore();
   const level = findLevel(levelId);
-  const [queue, setQueue] = useState<Exercise[]>(() => level?.exercises ?? []);
-  const [idx, setIdx] = useState(0);
-  const [mistakes, setMistakes] = useState(0);
-  const [solved, setSolved] = useState(0);
+  // Se a pessoa saiu no meio desta lição, continua exatamente de onde parou.
+  const [saved] = useState(() => {
+    const s = active?.lessonInProgress;
+    return s && s.levelId === levelId && s.practice === practice ? s : null;
+  });
+  const [queue, setQueue] = useState<Exercise[]>(() => {
+    const all = level?.exercises ?? [];
+    if (!saved) return all;
+    const restored = saved.queue.map((id) => all.find((e) => e.id === id)).filter((e): e is Exercise => !!e);
+    return restored.length ? restored : all;
+  });
+  const [idx, setIdx] = useState(() => (saved && saved.idx < queue.length ? saved.idx : 0));
+  const [mistakes, setMistakes] = useState(saved?.mistakes ?? 0);
+  const [solved, setSolved] = useState(saved?.solved ?? 0);
   const [checker, setChecker] = useState<(() => boolean) | null>(null);
   const [feedback, setFeedback] = useState<Feedback>(null);
   const [reward, setReward] = useState<LessonReward | null>(null);
+  const [pendingReward, setPendingReward] = useState<LessonReward | null>(null);
   const [outOfHearts, setOutOfHearts] = useState(false);
 
   // setState com função precisa ser embrulhado para guardar a função em si.
@@ -48,32 +59,54 @@ export function LessonPage({ levelId, practice, onExit }: Props) {
     if (!checker || !exercise) return;
     const correct = checker();
     setFeedback({ correct, answer: correctAnswer(exercise) });
-    if (correct) {
-      setSolved((n) => n + 1);
-      sounds.correct();
+
+    // Exercício errado volta no fim da fila: só termina quando acertar tudo.
+    const nextQueue = correct ? queue : [...queue, exercise];
+    const nextMistakes = mistakes + (correct ? 0 : 1);
+    const nextSolved = solved + (correct ? 1 : 0);
+    setQueue(nextQueue);
+    setMistakes(nextMistakes);
+    setSolved(nextSolved);
+    if (correct) sounds.correct();
+    else sounds.wrong();
+
+    // Última resposta certa: a lição já conta como concluída (mesmo se fechar agora).
+    if (correct && idx + 1 >= nextQueue.length) {
+      const out = completeLesson(recordAnswer(active!, true), { levelId, mistakes: nextMistakes, practice });
+      updateActive(() => out.profile);
+      setPendingReward(out.reward);
       return;
     }
-    sounds.wrong();
-    setMistakes((m) => m + 1);
-    // Exercício errado volta no fim da fila: só termina quando acertar tudo.
-    setQueue((q) => [...q, exercise]);
-    if (!practice) {
-      updateActive(loseHeart);
-      if (active!.hearts - 1 <= 0) setOutOfHearts(true);
-    }
+
+    // Salva o progresso a cada resposta: sair e voltar não perde nada.
+    updateActive((p) => {
+      let n = recordAnswer(p, correct);
+      if (!correct && !practice) n = loseHeart(n);
+      return {
+        ...n,
+        lessonInProgress: {
+          levelId,
+          practice,
+          queue: nextQueue.map((e) => e.id),
+          idx: idx + 1,
+          mistakes: nextMistakes,
+          solved: nextSolved,
+          updatedAt: Date.now(),
+        },
+      };
+    });
+    if (!correct && !practice && active!.hearts - 1 <= 0) setOutOfHearts(true);
   }
 
   function next() {
     setFeedback(null);
     setChecker(null);
-    if (outOfHearts) return;
-    if (idx + 1 >= queue.length) {
-      const out = completeLesson(active!, { levelId, mistakes, practice });
-      updateActive(() => out.profile);
-      setReward(out.reward);
+    if (pendingReward) {
+      setReward(pendingReward);
       sounds.complete();
       return;
     }
+    if (outOfHearts) return;
     setIdx((i) => i + 1);
   }
 
@@ -88,6 +121,7 @@ export function LessonPage({ levelId, practice, onExit }: Props) {
           Sem problemas! Eles voltam com o tempo (1 a cada 30 min), ou você pode <b>treinar uma lição já feita</b>{' '}
           para recuperar um coração agora.
         </p>
+        <p className="max-w-sm font-bold text-emerald-600">Seu progresso nesta lição ficou salvo.</p>
         <Button onClick={onExit}>Voltar para a trilha</Button>
       </Screen>
     );

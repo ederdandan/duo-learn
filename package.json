@@ -4,9 +4,10 @@
   "description": "Mini plataforma gamificada para a família aprender inglês junta",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && npm run check:content && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check:content": "esbuild scripts/check-content.ts --bundle --platform=node --format=esm --log-level=warning --outfile=node_modules/.cache/check-content.mjs && node node_modules/.cache/check-content.mjs"
   },
   "repository": {
     "type": "git",

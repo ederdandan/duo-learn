@@ -1,9 +1,19 @@
 import { LogOut, Snowflake, Trash2 } from 'lucide-react';
 import type { AgeGroup } from '../types';
 import { useStore } from '../store/AppStore';
-import { allLevels } from '../data/curriculum';
-import { AGE_GROUPS, BADGES, MAX_STREAK_FREEZES, STREAK_FREEZE_COST, buyStreakFreeze } from '../lib/rules';
+import { trackLevels } from '../data/curriculum';
+import type { HistoryEntry } from '../types';
+import {
+  AGE_GROUPS,
+  BADGES,
+  MAX_STREAK_FREEZES,
+  STREAK_FREEZE_COST,
+  buyStreakFreeze,
+  maxHearts,
+  setMaxHearts,
+} from '../lib/rules';
 import { Button } from '../components/Button';
+import { HeartsPicker } from '../components/HeartsPicker';
 import { ExportButton, ImportButton } from '../components/BackupControls';
 
 export function ProfilePage() {
@@ -11,7 +21,10 @@ export function ProfilePage() {
   if (!active) return null;
 
   const canBuy = active.xp >= STREAK_FREEZE_COST && active.streakFreezes < MAX_STREAK_FREEZES;
-  const progress = Math.round((active.completedLevels.length / allLevels.length) * 100);
+  const levels = trackLevels(active.ageGroup);
+  const progress = Math.round((levels.filter((l) => active.completedLevels.includes(l.id)).length / levels.length) * 100);
+  const totalAnswers = active.answers.correct + active.answers.wrong;
+  const accuracy = totalAnswers ? Math.round((active.answers.correct / totalAnswers) * 100) : 0;
 
   function remove() {
     if (confirm(`Apagar o perfil de ${active!.name}? O progresso será perdido.`)) removeProfile(active!.id);
@@ -34,7 +47,20 @@ export function ProfilePage() {
         <Stat label="Sequência" value={active.streak} icon="🔥" />
         <Stat label="Esta semana" value={active.weeklyXp} icon="📅" />
         <Stat label="Trilha" value={`${progress}%`} icon="🗺️" />
+        <Stat label="Respostas certas" value={active.answers.correct} icon="✅" />
+        <Stat label="Respostas erradas" value={active.answers.wrong} icon="❌" />
+        <Stat label="Taxa de acerto" value={`${accuracy}%`} icon="🎯" />
+        <Stat label="Lições feitas" value={active.history.filter((h) => h.kind === 'lesson').length} icon="📚" />
       </div>
+
+      <section className="rounded-3xl border-2 border-slate-200 bg-white p-5">
+        <h2 className="mb-1 text-lg font-extrabold">❤️ Erros permitidos</h2>
+        <p className="mb-3 text-sm text-slate-500">
+          Quantos erros você pode cometer antes de pausar as lições novas. Cada erro gasta um coração, e eles voltam
+          com o tempo. Hoje: <b>{maxHearts(active)}</b>.
+        </p>
+        <HeartsPicker value={maxHearts(active)} onChange={(v) => updateActive((p) => setMaxHearts(p, v))} />
+      </section>
 
       <section>
         <h2 className="mb-3 text-lg font-extrabold">Conquistas</h2>
@@ -55,6 +81,8 @@ export function ProfilePage() {
         </div>
       </section>
 
+      <History entries={active.history} />
+
       <section className="rounded-3xl border-2 border-slate-200 bg-white p-5">
         <h2 className="mb-1 flex items-center gap-2 text-lg font-extrabold">
           <Snowflake className="size-5 text-sky-500" /> Bloqueio de sequência
@@ -72,7 +100,10 @@ export function ProfilePage() {
       </section>
 
       <section className="rounded-3xl border-2 border-slate-200 bg-white p-5">
-        <h2 className="mb-2 text-lg font-extrabold">Modo de estudo</h2>
+        <h2 className="mb-1 text-lg font-extrabold">Modo de estudo</h2>
+        <p className="mb-3 text-sm text-slate-500">
+          Cada modo tem a sua própria trilha de 100 perguntas. O progresso de cada uma fica salvo se você trocar.
+        </p>
         <div className="flex flex-wrap gap-2">
           {(Object.keys(AGE_GROUPS) as AgeGroup[]).map((g) => (
             <button
@@ -108,6 +139,41 @@ export function ProfilePage() {
         </Button>
       </div>
     </div>
+  );
+}
+
+const KIND = {
+  lesson: { icon: '📘', label: 'Lição' },
+  practice: { icon: '💪', label: 'Treino' },
+  reset: { icon: '⏰', label: 'Etapa reiniciada' },
+} as const;
+
+function History({ entries }: { entries: HistoryEntry[] }) {
+  return (
+    <section className="rounded-3xl border-2 border-slate-200 bg-white p-5">
+      <h2 className="mb-3 text-lg font-extrabold">📜 Histórico</h2>
+      {entries.length === 0 ? (
+        <p className="text-sm text-slate-500">Nenhuma lição ainda. Que tal começar agora?</p>
+      ) : (
+        <ul className="max-h-80 divide-y divide-slate-100 overflow-y-auto">
+          {entries.map((h, i) => (
+            <li key={`${h.at}-${i}`} className="flex items-center gap-3 py-2">
+              <span className="text-2xl">{KIND[h.kind].icon}</span>
+              <div className="flex-1">
+                <p className="font-bold">
+                  {KIND[h.kind].label}: {h.title}
+                </p>
+                <p className="text-xs text-slate-400">
+                  {new Date(h.at).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}
+                  {h.mistakes !== undefined && ` · ${h.mistakes === 0 ? 'sem erros' : `${h.mistakes} erro(s)`}`}
+                </p>
+              </div>
+              {h.xp > 0 && <span className="font-extrabold text-amber-500">+{h.xp} XP</span>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 

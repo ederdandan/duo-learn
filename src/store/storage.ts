@@ -45,10 +45,16 @@ export function parseState(data: unknown): AppState {
       lastActiveDate: null,
       streakFreezes: 0,
       hearts: MAX_HEARTS,
+      maxHearts: MAX_HEARTS,
       heartsUpdatedAt: Date.now(),
       completedLevels: [],
       badges: [],
       createdAt: Date.now(),
+      lessonInProgress: null,
+      history: [],
+      answers: { correct: 0, wrong: 0 },
+      inactivityResetFor: null,
+      notice: null,
       ...p,
     }));
   const activeProfileId = profiles.some((p) => p.id === d.activeProfileId) ? d.activeProfileId! : null;

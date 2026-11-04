@@ -1,6 +1,6 @@
 import { Flame, Heart, Zap } from 'lucide-react';
 import type { UserProfile } from '../types';
-import { MAX_HEARTS, msToNextHeart } from '../lib/rules';
+import { maxHearts, msToNextHeart } from '../lib/rules';
 import { useNow } from '../lib/useNow';
 
 export function formatMs(ms: number) {
@@ -25,7 +25,8 @@ export function StatsBar({ profile }: { profile: UserProfile }) {
         title={next !== null ? `Próximo coração em ${formatMs(next)}` : 'Corações cheios'}
       >
         <Heart className="size-5" fill="currentColor" /> {profile.hearts}
-        {profile.hearts < MAX_HEARTS && next !== null && (
+        <span className="text-xs font-bold text-rose-300">/{maxHearts(profile)}</span>
+        {profile.hearts < maxHearts(profile) && next !== null && (
           <span className="text-xs font-bold text-slate-400">{formatMs(next)}</span>
         )}
       </span>

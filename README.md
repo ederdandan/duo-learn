@@ -25,7 +25,10 @@ npm run build    # gera dist/ (o que vai para o GitHub Pages)
 ```
 src/
 ├── types/index.ts          # Modelos: UserProfile, Level, Exercise (5 tipos)
-├── data/curriculum.ts      # CONTEÚDO: unidades → lições → exercícios (edite aqui)
+├── data/
+│   ├── curriculum.ts       # Junta as trilhas e as regras de desbloqueio
+│   ├── builders.ts         # Atalhos para escrever exercícios (mc, fill, bank, say, listen)
+│   └── tracks/             # CONTEÚDO: kids.ts, adults.ts, seniors.ts (100 perguntas cada)
 ├── lib/
 │   ├── rules.ts            # Regras do jogo: XP, corações, streak, conquistas, ligas
 │   ├── dates.ts            # Dia/semana (reset da liga na segunda-feira)
@@ -53,8 +56,11 @@ src/
 |---|---|
 | Lição concluída | +20 XP (+5 se não errar nada) |
 | Treino (lição já feita) | +5 XP e recupera 1 ❤️, não perde corações |
-| Corações | 5 no máximo, −1 por erro, recarrega 1 a cada 30 min |
+| Erros permitidos (corações) | 3, 5, 10 ou 20, escolhido ao criar o perfil e alterável no Perfil. −1 por erro, recarrega 1 a cada 30 min |
 | Erro | o exercício volta no fim da lição |
+| Sair no meio da lição | o progresso é salvo a cada resposta; na trilha aparece "Continuar" |
+| 5 dias sem estudar | a **etapa atual** recomeça; etapas anteriores, XP, conquistas e histórico ficam |
+| Histórico | cada lição, treino e reinício fica registrado no Perfil, com acertos e erros |
 | Liga semanal | ranking por `weeklyXp`, zera toda segunda 00:00 |
 | Bloqueio de sequência | 50 XP, máximo 2 — protege um dia sem estudar |
 
@@ -66,27 +72,32 @@ src/
 | Velocidade da voz | 0.9× | 1× | 0.75× |
 | Múltipla escolha | grade com emojis grandes | lista | lista |
 
+## Trilhas por faixa etária
+
+Cada faixa etária tem a sua trilha: **5 etapas × 4 lições × 5 exercícios = 100 perguntas**, sem repetição.
+
+| Trilha | Etapas |
+|---|---|
+| 🧒 Crianças | Meu mundo · Bichos · Minha casa · Comidinhas · Vamos brincar |
+| 🧑 Adultos | O básico · Comer fora · Viagem · Trabalho · Vida social |
+| 🧓 60+ | Primeiros passos · Saúde · Casa e rotina · Passeios · Conversar |
+
 ## Como adicionar uma lição
 
-Edite `src/data/curriculum.ts` e adicione um objeto `Level` dentro de uma unidade:
+Edite o arquivo da trilha em `src/data/tracks/` e adicione uma lição dentro de uma etapa:
 
 ```ts
-{
-  id: 'lvl_6',            // único
-  title: 'Animais',
-  description: 'Bichos de casa e da fazenda',
-  icon: '🐶',
-  color: 'bg-teal-500',
-  borderColor: 'border-teal-700',
-  exercises: [
-    { id: 'l6e1', type: 'multiple-choice', prompt: 'Qual é o "cachorro"?', speak: 'Dog',
-      options: [{ text: 'Dog', icon: '🐶', correct: true }, { text: 'Cat', icon: '🐱', correct: false }] },
-    { id: 'l6e2', type: 'listening', prompt: 'Ouça e escreva', phrase: 'I have a dog' },
-  ],
-}
+['Animais', 'Bichos de casa', '🐶', [
+  mc('Qual é o "cachorro"?', 'Dog', ['Dog', '🐶'], ['Cat', '🐱'], ['Fish', '🐟']), // 1ª opção = correta
+  fill('The', 'dog', 'is happy.', ['cat', 'sun']),
+  bank('Eu tenho um cachorro', 'I have a dog', ['cat', 'is']),
+  say('Good dog', 'Bom cachorro'),
+  listen('My dog is big'),
+]],
 ```
 
-Tipos disponíveis: `multiple-choice`, `fill-blank`, `word-bank`, `speaking`, `listening`.
+Depois rode `npm run check:content`: ele confere se não há perguntas repetidas e se as opções estão coerentes
+(o `npm run build` também roda essa checagem).
 
 ## Próximos passos (backlog)
 
@@ -96,4 +107,6 @@ Tipos disponíveis: `multiple-choice`, `fill-blank`, `word-bank`, `speaking`, `l
 - [ ] Criador de lições pela interface (para pais/avós criarem listas próprias)
 - [ ] PWA / offline (manifest + service worker)
 - [ ] Repetição espaçada: revisar itens errados nos dias seguintes
-- [ ] Conteúdo diferente por faixa etária (hoje a trilha é compartilhada)
+- [x] Trilha própria para cada faixa etária (100 perguntas cada)
+- [x] Erros permitidos configuráveis por perfil
+- [x] Continuar lição de onde parou + histórico
