@@ -58,7 +58,7 @@ export type QuestMetric = 'xp' | 'lessons' | 'perfect' | 'combo' | 'speaking' | 
 
 export interface DailyQuests {
   date: string;
-  /** Ids das 3 missões sorteadas (ver QUEST_POOL em rules.ts). */
+  /** Ids das 3 missões sorteadas (ver QUEST_POOL em lib/quests.ts). */
   ids: string[];
   /** Contadores do dia por métrica. */
   progress: Partial<Record<QuestMetric, number>>;
@@ -148,7 +148,7 @@ export interface MatchPairsExercise extends BaseExercise {
   pairs: Array<[en: string, pt: string]>;
 }
 
-/** Ouvir e escolher a imagem (sem texto nas opções). */
+/** Ouvir e escolher: a palavra é falada (sem pergunta escrita) e a pessoa toca na opção. */
 export interface ListenChooseExercise extends BaseExercise {
   type: 'listen-choose';
   speak: string;

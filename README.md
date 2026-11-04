@@ -3,6 +3,9 @@
 Mini plataforma gamificada para a família aprender inglês junta — crianças, adultos e 60+ —
 rodando 100% no navegador (sem backend, sem APIs pagas) e hospedada no GitHub Pages.
 
+> 📘 **Para continuar o desenvolvimento (pessoas ou IAs):** leia [`docs/SPEC.md`](docs/SPEC.md) — arquitetura, modelos de dados, regras do jogo, armadilhas conhecidas e backlog.
+
+
 ## Rodando localmente
 
 ```bash
