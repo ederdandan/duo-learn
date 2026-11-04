@@ -78,7 +78,15 @@ export interface HistoryEntry {
   mistakes?: number;
 }
 
-export type ExerciseType = 'speaking' | 'word-bank' | 'multiple-choice' | 'fill-blank' | 'listening';
+export type ExerciseType =
+  | 'speaking'
+  | 'word-bank'
+  | 'multiple-choice'
+  | 'fill-blank'
+  | 'listening'
+  | 'match-pairs'
+  | 'listen-choose'
+  | 'translate';
 
 interface BaseExercise {
   id: string;
@@ -118,12 +126,37 @@ export interface ListeningExercise extends BaseExercise {
   phrase: string;
 }
 
+/** Ligar os pares: palavras em inglês ↔ português. */
+export interface MatchPairsExercise extends BaseExercise {
+  type: 'match-pairs';
+  pairs: Array<[en: string, pt: string]>;
+}
+
+/** Ouvir e escolher a imagem (sem texto nas opções). */
+export interface ListenChooseExercise extends BaseExercise {
+  type: 'listen-choose';
+  speak: string;
+  options: Array<{ text: string; icon: string; correct: boolean }>;
+}
+
+/** Traduzir digitando: frase em português → inglês. */
+export interface TranslateExercise extends BaseExercise {
+  type: 'translate';
+  portuguese: string;
+  sentence: string;
+  /** Outras traduções aceitas. */
+  accept?: string[];
+}
+
 export type Exercise =
   | SpeakingExercise
   | WordBankExercise
   | MultipleChoiceExercise
   | FillBlankExercise
-  | ListeningExercise;
+  | ListeningExercise
+  | MatchPairsExercise
+  | ListenChooseExercise
+  | TranslateExercise;
 
 export interface Level {
   id: string;

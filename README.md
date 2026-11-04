@@ -27,8 +27,8 @@ src/
 ├── types/index.ts          # Modelos: UserProfile, Level, Exercise (5 tipos)
 ├── data/
 │   ├── curriculum.ts       # Junta as trilhas e as regras de desbloqueio
-│   ├── builders.ts         # Atalhos para escrever exercícios (mc, fill, bank, say, listen)
-│   └── tracks/             # CONTEÚDO: kids.ts, adults.ts, seniors.ts (100 perguntas cada)
+│   ├── builders.ts         # Atalhos para escrever exercícios (mc, hear, fill, bank, write, pairs, say, listen)
+│   └── tracks/             # CONTEÚDO: kids.ts, adults.ts, seniors.ts (120 perguntas cada)
 ├── lib/
 │   ├── rules.ts            # Regras do jogo: XP, corações, streak, conquistas, ligas
 │   ├── dates.ts            # Dia/semana (reset da liga na segunda-feira)
@@ -77,7 +77,7 @@ src/
 
 ## Trilhas por faixa etária
 
-Cada faixa etária tem a sua trilha: **5 etapas × 4 lições × 5 exercícios = 100 perguntas**, sem repetição.
+Cada faixa etária tem a sua trilha: **5 etapas × 4 lições × 6 exercícios = 120 perguntas**, sem repetição.
 
 | Trilha | Etapas |
 |---|---|
@@ -96,8 +96,22 @@ Edite o arquivo da trilha em `src/data/tracks/` e adicione uma lição dentro de
   bank('Eu tenho um cachorro', 'I have a dog', ['cat', 'is']),
   say('Good dog', 'Bom cachorro'),
   listen('My dog is big'),
+  pairs(['Dog', 'Cachorro'], ['Cat', 'Gato'], ['Bird', 'Pássaro'], ['Fish', 'Peixe']),
 ]],
 ```
+
+### Tipos de exercício
+
+| Atalho | Tipo | O que a pessoa faz |
+|---|---|---|
+| `mc` | Múltipla escolha | Lê a pergunta em português e toca na opção certa |
+| `hear` | Ouvir e escolher | Ouve a palavra (sem pergunta escrita) e toca na opção |
+| `fill` | Completar | Escolhe a palavra que falta na frase |
+| `bank` | Montar a frase | Toca nas palavras na ordem certa |
+| `write` | Traduzir digitando | Lê em português e digita em inglês (`accept` = outras respostas válidas) |
+| `pairs` | Ligar pares | Liga cada palavra em inglês à tradução (até 2 erros ainda conta como acerto) |
+| `say` | Falar | Fala a frase no microfone (ou digita) |
+| `listen` | Ouvir e escrever | Ouve a frase e digita o que ouviu |
 
 Depois rode `npm run check:content`: ele confere se não há perguntas repetidas e se as opções estão coerentes
 (o `npm run build` também roda essa checagem).
@@ -111,6 +125,7 @@ Depois rode `npm run check:content`: ele confere se não há perguntas repetidas
 - [ ] PWA / offline (manifest + service worker)
 - [x] Revisão de erros com repetição espaçada
 - [x] Meta diária
-- [x] Trilha própria para cada faixa etária (100 perguntas cada)
+- [x] Trilha própria para cada faixa etária (120 perguntas cada)
+- [x] Novos exercícios: ligar pares, ouvir e escolher, traduzir digitando
 - [x] Erros permitidos configuráveis por perfil
 - [x] Continuar lição de onde parou + histórico

@@ -23,6 +23,12 @@ export function correctAnswer(e: Exercise) {
       return e.targetPhrase;
     case 'listening':
       return e.phrase;
+    case 'listen-choose':
+      return e.options.find((o) => o.correct)?.text ?? '';
+    case 'translate':
+      return e.sentence;
+    case 'match-pairs':
+      return e.pairs.map(([en, pt]) => `${en} = ${pt}`).join(' · ');
   }
 }
 

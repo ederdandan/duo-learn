@@ -129,7 +129,7 @@ export function ProfilePage() {
       <section className="rounded-3xl border-2 border-slate-200 bg-white p-5">
         <h2 className="mb-1 text-lg font-extrabold">Modo de estudo</h2>
         <p className="mb-3 text-sm text-slate-500">
-          Cada modo tem a sua própria trilha de 100 perguntas. O progresso de cada uma fica salvo se você trocar.
+          Cada modo tem a sua própria trilha de 120 perguntas. O progresso de cada uma fica salvo se você trocar.
         </p>
         <div className="flex flex-wrap gap-2">
           {(Object.keys(AGE_GROUPS) as AgeGroup[]).map((g) => (

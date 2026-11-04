@@ -24,6 +24,9 @@ import { FillBlank } from '../components/exercises/FillBlank';
 import { WordBank } from '../components/exercises/WordBank';
 import { Speaking } from '../components/exercises/Speaking';
 import { Listening } from '../components/exercises/Listening';
+import { MatchPairs } from '../components/exercises/MatchPairs';
+import { ListenChoose } from '../components/exercises/ListenChoose';
+import { Translate } from '../components/exercises/Translate';
 
 interface Props {
   /** Lição a jogar (vazio no modo revisão). */
@@ -202,6 +205,9 @@ export function LessonPage({ levelId, practice, review = false, onExit }: Props)
         {exercise.type === 'word-bank' && <WordBank exercise={exercise} {...props} />}
         {exercise.type === 'speaking' && <Speaking exercise={exercise} {...props} />}
         {exercise.type === 'listening' && <Listening exercise={exercise} {...props} />}
+        {exercise.type === 'match-pairs' && <MatchPairs exercise={exercise} {...props} />}
+        {exercise.type === 'listen-choose' && <ListenChoose exercise={exercise} {...props} />}
+        {exercise.type === 'translate' && <Translate exercise={exercise} {...props} />}
       </main>
 
       <footer

@@ -48,6 +48,33 @@ export const listen = (en: string): Draft => ({
   phrase: en,
 });
 
+/** Ligar os pares: [inglês, português]. */
+export const pairs = (...items: Array<[string, string]>): Draft => ({
+  type: 'match-pairs',
+  prompt: 'Toque nos pares',
+  pairs: items,
+});
+
+/** Ouvir e escolher a imagem: a primeira opção é a correta. */
+export const hear = (speak: string, correct: [string, string], ...wrong: [string, string][]): Draft => ({
+  type: 'listen-choose',
+  prompt: 'O que você ouviu?',
+  speak,
+  options: [
+    { text: correct[0], icon: correct[1], correct: true },
+    ...wrong.map(([text, icon]) => ({ text, icon, correct: false })),
+  ],
+});
+
+/** Traduzir digitando (português → inglês). `accept` = outras respostas aceitas. */
+export const write = (pt: string, en: string, accept: string[] = []): Draft => ({
+  type: 'translate',
+  prompt: 'Escreva em inglês',
+  portuguese: pt,
+  sentence: en,
+  ...(accept.length ? { accept } : {}),
+});
+
 const PALETTE: Array<[string, string]> = [
   ['bg-violet-500', 'border-violet-700'],
   ['bg-sky-500', 'border-sky-700'],
