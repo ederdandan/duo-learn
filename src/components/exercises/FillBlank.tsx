@@ -1,0 +1,47 @@
+import { useMemo, useState } from 'react';
+import type { FillBlankExercise } from '../../types';
+import { speak } from '../../lib/speech';
+import { shuffle, type ExerciseProps } from './shared';
+
+export function FillBlank({ exercise, ttsRate, locked, onReady }: ExerciseProps<FillBlankExercise>) {
+  const options = useMemo(() => shuffle(exercise.options), [exercise]);
+  const [picked, setPicked] = useState<string | null>(null);
+
+  function pick(w: string) {
+    if (locked) return;
+    setPicked(w);
+    speak(w, ttsRate);
+    onReady(() => w === exercise.correctWord);
+  }
+
+  return (
+    <div className="space-y-8">
+      <h2 className="text-2xl font-extrabold">{exercise.prompt}</h2>
+      <p className="flex flex-wrap items-center gap-2 text-2xl font-bold">
+        <span>{exercise.sentenceParts[0]}</span>
+        <span
+          className={`inline-block min-w-24 rounded-xl border-b-4 px-3 py-1 text-center ${
+            picked ? 'border-sky-400 bg-sky-50 text-sky-700' : 'border-slate-300 bg-slate-100 text-transparent'
+          }`}
+        >
+          {picked ?? '____'}
+        </span>
+        <span>{exercise.sentenceParts[1]}</span>
+      </p>
+      <div className="flex flex-wrap gap-3">
+        {options.map((w) => (
+          <button
+            key={w}
+            onClick={() => pick(w)}
+            disabled={locked}
+            className={`rounded-2xl border-2 border-b-4 px-5 py-3 text-lg font-bold transition ${
+              picked === w ? 'border-sky-400 bg-sky-50 text-sky-700' : 'border-slate-200 bg-white hover:bg-slate-50'
+            }`}
+          >
+            {w}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
