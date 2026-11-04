@@ -48,6 +48,22 @@ export interface UserProfile {
   reviews: Record<string, ReviewItem>;
   /** Itens que saíram da revisão por terem sido fixados. */
   mastered: number;
+  /** Missões do dia (sorteadas uma vez por dia). */
+  quests: DailyQuests | null;
+  /** Baús abertos desde sempre. */
+  chestsOpened: number;
+}
+
+export type QuestMetric = 'xp' | 'lessons' | 'perfect' | 'combo' | 'speaking' | 'listening' | 'pairs' | 'reviews';
+
+export interface DailyQuests {
+  date: string;
+  /** Ids das 3 missões sorteadas (ver QUEST_POOL em rules.ts). */
+  ids: string[];
+  /** Contadores do dia por métrica. */
+  progress: Partial<Record<QuestMetric, number>>;
+  /** Missões cujo baú já foi aberto, com o prêmio recebido. */
+  opened: Record<string, string>;
 }
 
 export interface ReviewItem {

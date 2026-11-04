@@ -36,6 +36,7 @@ export const BADGES: Record<string, { label: string; icon: string; description: 
   goal_7: { label: '7 metas', icon: '📆', description: 'Bateu a meta diária em 7 dias' },
   first_review: { label: 'Revisor', icon: '🔁', description: 'Fez a primeira revisão de erros' },
   mastered_10: { label: 'Fixou 10', icon: '🧠', description: 'Dominou 10 itens que tinha errado' },
+  first_chest: { label: 'Primeiro baú', icon: '🎁', description: 'Abriu o primeiro baú de missão' },
   all_levels: { label: 'Mestre da trilha', icon: '👑', description: 'Concluiu todas as lições' },
 };
 
@@ -76,6 +77,8 @@ export function newProfile(
     goalDays: 0,
     reviews: {},
     mastered: 0,
+    quests: null,
+    chestsOpened: 0,
   };
 }
 

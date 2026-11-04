@@ -6,6 +6,7 @@ import { AGE_GROUPS, MAX_HEARTS, newProfile } from '../lib/rules';
 import { HeartsPicker } from '../components/HeartsPicker';
 import { Avatar } from '../components/Avatar';
 import { PhotoPicker } from '../components/PhotoPicker';
+import { InstallCard } from '../components/InstallCard';
 import { Button } from '../components/Button';
 import { ImportButton } from '../components/BackupControls';
 
@@ -51,7 +52,11 @@ export function ProfilesPage() {
         </>
       )}
 
-      <div className="mt-10 flex items-center gap-2 text-sm text-slate-400">
+      <div className="mt-8 w-full">
+        <InstallCard compact />
+      </div>
+
+      <div className="mt-6 flex items-center gap-2 text-sm text-slate-400">
         <Upload className="size-4" />
         Trocando de aparelho? <ImportButton className="font-bold text-brand-600 underline" />
       </div>

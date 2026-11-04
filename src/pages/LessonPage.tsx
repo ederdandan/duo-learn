@@ -16,6 +16,7 @@ import {
   type LessonReward,
 } from '../lib/rules';
 import { sounds } from '../lib/sounds';
+import { newlyCompleted, questsAfterAnswer, questsAfterLesson, type Quest } from '../lib/quests';
 import { speak } from '../lib/speech';
 import { Button } from '../components/Button';
 import { correctAnswer } from '../components/exercises/shared';
@@ -72,6 +73,9 @@ export function LessonPage({ levelId, practice, review = false, onExit }: Props)
   const [graded, setGraded] = useState<Set<string>>(() => new Set());
   const [total] = useState(() => (review ? queue.length : level?.exercises.length) || 1);
   const safe = review || practice; // não perde corações
+  // Acertos seguidos (para a missão "acerte N seguidas").
+  const [combo, setCombo] = useState(0);
+  const [questsDone, setQuestsDone] = useState<Quest[]>([]);
 
   // setState com função precisa ser embrulhado para guardar a função em si.
   const onReady = useCallback((fn: (() => boolean) | null) => setChecker(() => fn), []);
@@ -104,23 +108,27 @@ export function LessonPage({ levelId, practice, review = false, onExit }: Props)
     setSolved(nextSolved);
     if (correct) sounds.correct();
     else sounds.wrong();
+    const nextCombo = correct ? combo + 1 : 0;
+    setCombo(nextCombo);
 
     // Última resposta certa: a lição já conta como concluída (mesmo se fechar agora).
     const firstTry = review && !graded.has(exercise.id);
     if (firstTry) setGraded((g) => new Set(g).add(exercise.id));
 
     if (correct && idx + 1 >= nextQueue.length) {
-      let base = recordAnswer(active!, true);
+      let base = questsAfterAnswer(recordAnswer(active!, true), exercise.type, true, nextCombo);
       if (firstTry) base = gradeReview(base, exercise.id, true);
       const out = completeLesson(base, { levelId, mistakes: nextMistakes, practice, review });
-      updateActive(() => out.profile);
+      const finalProfile = questsAfterLesson(out.profile, { mistakes: nextMistakes, practice, review });
+      updateActive(() => finalProfile);
+      setQuestsDone(newlyCompleted(active!, finalProfile));
       setPendingReward(out.reward);
       return;
     }
 
     // Salva o progresso a cada resposta: sair e voltar não perde nada.
     updateActive((p) => {
-      let n = recordAnswer(p, correct);
+      let n = questsAfterAnswer(recordAnswer(p, correct), exercise.type, correct, nextCombo);
       if (review) {
         if (firstTry) n = gradeReview(n, exercise.id, correct);
         return n;
@@ -157,7 +165,16 @@ export function LessonPage({ levelId, practice, review = false, onExit }: Props)
   }
 
   if (reward)
-    return <LessonComplete reward={reward} mistakes={mistakes} practice={practice} review={review} onExit={onExit} />;
+    return (
+      <LessonComplete
+        reward={reward}
+        mistakes={mistakes}
+        practice={practice}
+        review={review}
+        quests={questsDone}
+        onExit={onExit}
+      />
+    );
 
   if (outOfHearts && !feedback) {
     return (
@@ -265,12 +282,14 @@ function LessonComplete({
   mistakes,
   practice,
   review,
+  quests,
   onExit,
 }: {
   reward: LessonReward;
   mistakes: number;
   practice: boolean;
   review: boolean;
+  quests: Quest[];
   onExit: () => void;
 }) {
   const pct = Math.min(100, (reward.dailyXp / reward.dailyGoal) * 100);
@@ -305,6 +324,17 @@ function LessonComplete({
       </div>
       {(practice || review) && <p className="font-bold text-rose-500">+1 ❤️ recuperado</p>}
       {mistakes === 0 && !practice && !review && <p className="font-bold text-emerald-600">Sem erros! Bônus de perfeição 💎</p>}
+      {quests.length > 0 && (
+        <div className="w-full animate-pop rounded-2xl border-2 border-amber-400 bg-amber-50 p-4">
+          <p className="mb-1 font-extrabold text-amber-700">🎁 Missão concluída!</p>
+          {quests.map((q) => (
+            <p key={q.id} className="font-bold">
+              {q.icon} {q.label}
+            </p>
+          ))}
+          <p className="mt-1 text-sm text-amber-700">Abra o baú na trilha para pegar o prêmio.</p>
+        </div>
+      )}
       {reward.newBadges.length > 0 && (
         <div className="w-full rounded-2xl border-2 border-brand-500 bg-brand-50 p-4">
           <p className="mb-2 font-extrabold text-brand-700">Nova conquista!</p>

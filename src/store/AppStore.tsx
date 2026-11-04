@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import type { AppState, UserProfile } from '../types';
 import { loadState, saveState } from './storage';
 import { refreshProfile } from '../lib/rules';
+import { ensureQuests } from '../lib/quests';
 
 interface Store {
   state: AppState;
@@ -15,7 +16,7 @@ interface Store {
 
 const Ctx = createContext<Store | null>(null);
 
-const refreshAll = (s: AppState): AppState => ({ ...s, profiles: s.profiles.map((p) => refreshProfile(p)) });
+const refreshAll = (s: AppState): AppState => ({ ...s, profiles: s.profiles.map((p) => ensureQuests(refreshProfile(p))) });
 
 export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [state, setRaw] = useState<AppState>(() => refreshAll(loadState()));
@@ -38,7 +39,8 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       state,
       active,
       setState,
-      addProfile: (p) => setRaw((s) => ({ ...s, profiles: [...s.profiles, p], activeProfileId: p.id })),
+      addProfile: (p) =>
+        setRaw((s) => ({ ...s, profiles: [...s.profiles, ensureQuests(p)], activeProfileId: p.id })),
       removeProfile: (id) =>
         setRaw((s) => ({
           ...s,
@@ -49,7 +51,8 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       updateActive: (fn) =>
         setRaw((s) => ({
           ...s,
-          profiles: s.profiles.map((p) => (p.id === s.activeProfileId ? fn(p) : p)),
+          // ensureQuests: se o dia virou com o app aberto, as missões já trocam na próxima ação.
+          profiles: s.profiles.map((p) => (p.id === s.activeProfileId ? ensureQuests(fn(p)) : p)),
         })),
     };
   }, [state, setState]);

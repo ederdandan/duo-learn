@@ -4,6 +4,7 @@ import { useStore } from '../store/AppStore';
 import { AGE_GROUPS, INACTIVITY_DAYS } from '../lib/rules';
 import type { AgeGroup, Level } from '../types';
 import { DailyPanel } from '../components/DailyPanel';
+import { QuestsPanel } from '../components/QuestsPanel';
 
 interface Props {
   onStart: (levelId: string, practice: boolean) => void;
@@ -62,6 +63,7 @@ export function PathPage({ onStart, onReview }: Props) {
       )}
 
       <DailyPanel profile={active} onReview={onReview} />
+      <QuestsPanel />
 
       {noHearts && (
         <div className="rounded-2xl border-2 border-rose-200 bg-rose-50 p-4 text-rose-700">

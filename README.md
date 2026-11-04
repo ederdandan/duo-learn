@@ -14,6 +14,15 @@ npm run build    # gera dist/ (o que vai para o GitHub Pages)
 > O reconhecimento de voz funciona melhor no **Chrome/Edge** e exige `localhost` ou HTTPS.
 > Em navegadores sem suporte (ex.: Firefox), os exercícios de fala viram digitação automaticamente.
 
+## App instalável (PWA)
+
+- **Android / Chrome / Edge:** botão **"Instalar app"** na tela de Perfil (ou menu ⋮ → "Instalar app").
+- **iPhone / iPad:** no Safari, **Compartilhar → "Adicionar à Tela de Início"** (instruções aparecem no Perfil).
+- Funciona **sem internet** depois do primeiro acesso: `public/sw.js` guarda a página e os arquivos do app.
+  Com internet, sempre carrega a versão mais nova.
+- O reconhecimento de voz do Chrome precisa de internet; offline, o exercício de fala usa a digitação.
+- Ícones gerados por `python scripts/make-icons.py` (sem dependências).
+
 ## Publicando no GitHub Pages
 
 1. No GitHub: **Settings → Pages → Source: GitHub Actions**.
@@ -63,6 +72,7 @@ src/
 | Histórico | cada lição, treino e reinício fica registrado no Perfil, com acertos e erros |
 | Meta diária | 10, 20, 30 ou 50 XP por dia (no Perfil). Barra na trilha, contador 🎯 no topo, comemoração ao bater |
 | Revisão de erros | todo exercício errado entra na revisão. Acertou → volta em 1, 3, 7 e 14 dias; depois de 5 acertos seguidos está fixado. Errou → volta amanhã. Não gasta corações, recupera 1 e dá 10 XP |
+| Missões diárias | 3 por dia, sorteadas por perfil (ex.: "acerte 5 seguidas", "complete 2 lições", "acerte 2 de fala"). Cada missão concluída libera um baú 🎁 com prêmio surpresa: +10/15/20 XP, corações cheios ou bloqueio de sequência |
 | Foto do perfil | opcional (câmera ou galeria); é reduzida para 160×160 (~5 KB) e aparece no topo, na lista de perfis e no ranking |
 | Liga semanal | ranking por `weeklyXp`, zera toda segunda 00:00 |
 | Bloqueio de sequência | 50 XP, máximo 2 — protege um dia sem estudar |
@@ -122,7 +132,8 @@ Depois rode `npm run check:content`: ele confere se não há perguntas repetidas
 - [x] Bloqueio de sequência comprável com XP
 - [x] Modo de escuta (ouvir e transcrever)
 - [ ] Criador de lições pela interface (para pais/avós criarem listas próprias)
-- [ ] PWA / offline (manifest + service worker)
+- [x] PWA instalável + offline (manifest + service worker)
+- [x] Missões diárias com baú
 - [x] Revisão de erros com repetição espaçada
 - [x] Meta diária
 - [x] Trilha própria para cada faixa etária (120 perguntas cada)

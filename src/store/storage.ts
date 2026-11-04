@@ -61,6 +61,8 @@ export function parseState(data: unknown): AppState {
       goalDays: 0,
       reviews: {},
       mastered: 0,
+      quests: null,
+      chestsOpened: 0,
       notice: null,
       ...p,
     }));

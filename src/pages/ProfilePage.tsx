@@ -18,6 +18,7 @@ import { Button } from '../components/Button';
 import { HeartsPicker } from '../components/HeartsPicker';
 import { Avatar } from '../components/Avatar';
 import { PhotoPicker } from '../components/PhotoPicker';
+import { InstallCard } from '../components/InstallCard';
 import { ExportButton, ImportButton } from '../components/BackupControls';
 
 export function ProfilePage() {
@@ -107,6 +108,8 @@ export function ProfilePage() {
           })}
         </div>
       </section>
+
+      <InstallCard />
 
       <History entries={active.history} />
 
