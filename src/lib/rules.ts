@@ -32,15 +32,26 @@ export const BADGES: Record<string, { label: string; icon: string; description: 
   xp_100: { label: 'Centena', icon: '💯', description: '100 XP acumulados' },
   unit_1: { label: 'Primeira etapa', icon: '🏅', description: 'Concluiu uma etapa inteira' },
   answers_100: { label: '100 respostas', icon: '🎯', description: 'Acertou 100 respostas' },
+  goal_1: { label: 'Meta batida', icon: '✅', description: 'Bateu a meta diária pela primeira vez' },
+  goal_7: { label: '7 metas', icon: '📆', description: 'Bateu a meta diária em 7 dias' },
+  first_review: { label: 'Revisor', icon: '🔁', description: 'Fez a primeira revisão de erros' },
+  mastered_10: { label: 'Fixou 10', icon: '🧠', description: 'Dominou 10 itens que tinha errado' },
   all_levels: { label: 'Mestre da trilha', icon: '👑', description: 'Concluiu todas as lições' },
 };
 
-export function newProfile(name: string, avatar: string, ageGroup: AgeGroup, hearts = MAX_HEARTS): UserProfile {
+export function newProfile(
+  name: string,
+  avatar: string,
+  ageGroup: AgeGroup,
+  hearts = MAX_HEARTS,
+  photo: string | null = null,
+): UserProfile {
   const now = Date.now();
   return {
     id: `usr_${now}_${Math.random().toString(36).slice(2, 6)}`,
     name: name.trim(),
     avatar,
+    photo,
     ageGroup,
     xp: 0,
     weeklyXp: 0,
@@ -59,6 +70,12 @@ export function newProfile(name: string, avatar: string, ageGroup: AgeGroup, hea
     answers: { correct: 0, wrong: 0 },
     inactivityResetFor: null,
     notice: null,
+    dailyGoal: DEFAULT_DAILY_GOAL,
+    dailyXp: 0,
+    dailyDate: null,
+    goalDays: 0,
+    reviews: {},
+    mastered: 0,
   };
 }
 
@@ -135,9 +152,12 @@ export function loseHeart(p: UserProfile): UserProfile {
 }
 
 export interface LessonResult {
+  /** Lição jogada (vazio numa revisão de erros). */
   levelId: string;
   mistakes: number;
   practice: boolean;
+  /** Revisão de erros: não conclui lição, recupera 1 coração. */
+  review?: boolean;
 }
 
 export interface LessonReward {
@@ -145,11 +165,84 @@ export interface LessonReward {
   newBadges: string[];
   streak: number;
   streakIncreased: boolean;
+  dailyXp: number;
+  dailyGoal: number;
+  /** A meta diária foi batida justamente nesta lição. */
+  dailyGoalReached: boolean;
+}
+
+// ---------- Meta diária ----------
+
+export const DAILY_GOAL_OPTIONS = [10, 20, 30, 50];
+export const DEFAULT_DAILY_GOAL = 20;
+
+export const dailyGoal = (p: Pick<UserProfile, 'dailyGoal'>) => p.dailyGoal || DEFAULT_DAILY_GOAL;
+
+/** XP ganho hoje (zera sozinho na virada do dia). */
+export function dailyXpToday(p: Pick<UserProfile, 'dailyXp' | 'dailyDate'>, now = new Date()) {
+  return p.dailyDate === todayKey(now) ? p.dailyXp : 0;
+}
+
+// ---------- Revisão de erros (repetição espaçada) ----------
+
+/**
+ * Caixas de Leitner: cada acerto na revisão empurra o item para a próxima
+ * caixa, que volta depois de mais dias. Passou da última → item dominado.
+ * Caixa 0 = errou agora (pode revisar já).
+ */
+export const REVIEW_INTERVALS_DAYS = [0, 1, 3, 7, 14];
+export const REVIEW_SESSION_SIZE = 10;
+export const XP_REVIEW = 10;
+const DAY_MS = 86_400_000;
+
+/** Errou um exercício numa lição: entra (ou volta) para a revisão. */
+export function markForReview(p: UserProfile, exerciseId: string, now = Date.now()): UserProfile {
+  const old = p.reviews[exerciseId];
+  return { ...p, reviews: { ...p.reviews, [exerciseId]: { box: 0, due: now, misses: (old?.misses ?? 0) + 1 } } };
+}
+
+/** Resultado da 1ª tentativa de um item numa revisão. */
+export function gradeReview(p: UserProfile, exerciseId: string, correct: boolean, now = Date.now()): UserProfile {
+  const old = p.reviews[exerciseId];
+  if (!old) return p;
+  const reviews = { ...p.reviews };
+  if (!correct) {
+    reviews[exerciseId] = { box: 0, due: now + DAY_MS, misses: old.misses + 1 };
+    return { ...p, reviews };
+  }
+  const box = old.box + 1;
+  if (box >= REVIEW_INTERVALS_DAYS.length) {
+    delete reviews[exerciseId];
+    return { ...p, reviews, mastered: p.mastered + 1 };
+  }
+  reviews[exerciseId] = { ...old, box, due: now + REVIEW_INTERVALS_DAYS[box] * DAY_MS };
+  return { ...p, reviews };
+}
+
+/** Itens da trilha atual para revisar, os mais atrasados primeiro. */
+export function reviewQueue(p: UserProfile, now = Date.now()) {
+  const inTrack = new Set(trackLevels(p.ageGroup).flatMap((l) => l.exercises.map((e) => e.id)));
+  const items = Object.entries(p.reviews).filter(([id]) => inTrack.has(id));
+  return {
+    due: items
+      .filter(([, r]) => r.due <= now)
+      .sort((a, b) => a[1].due - b[1].due)
+      .map(([id]) => id),
+    scheduled: items.length,
+    nextDue: items.filter(([, r]) => r.due > now).reduce((m, [, r]) => Math.min(m, r.due), Infinity),
+  };
 }
 
 export function completeLesson(p: UserProfile, r: LessonResult): { profile: UserProfile; reward: LessonReward } {
   const today = todayKey();
-  const xp = r.practice ? XP_PRACTICE : XP_PER_LESSON + (r.mistakes === 0 ? XP_PERFECT_BONUS : 0);
+  const xp = r.review
+    ? XP_REVIEW
+    : r.practice
+      ? XP_PRACTICE
+      : XP_PER_LESSON + (r.mistakes === 0 ? XP_PERFECT_BONUS : 0);
+  const goal = dailyGoal(p);
+  const dailyBefore = dailyXpToday(p);
+  const dailyXp = dailyBefore + xp;
 
   // Streak
   let { streak, streakFreezes } = p;
@@ -167,23 +260,29 @@ export function completeLesson(p: UserProfile, r: LessonResult): { profile: User
   }
 
   const completedLevels =
-    r.practice || p.completedLevels.includes(r.levelId) ? p.completedLevels : [...p.completedLevels, r.levelId];
+    r.review || r.practice || p.completedLevels.includes(r.levelId)
+      ? p.completedLevels
+      : [...p.completedLevels, r.levelId];
+  const dailyGoalReached = dailyBefore < goal && dailyXp >= goal;
 
   let next: UserProfile = {
     ...p,
     xp: p.xp + xp,
     weeklyXp: p.weeklyXp + xp,
+    dailyXp,
+    dailyDate: today,
+    goalDays: dailyGoalReached ? p.goalDays + 1 : p.goalDays,
     streak,
     streakFreezes,
     lastActiveDate: today,
     completedLevels,
-    // Treino recupera 1 coração: errar não trava o estudo.
-    hearts: r.practice ? Math.min(maxHearts(p), p.hearts + 1) : p.hearts,
-    lessonInProgress: null,
+    // Treino e revisão recuperam 1 coração: errar não trava o estudo.
+    hearts: r.practice || r.review ? Math.min(maxHearts(p), p.hearts + 1) : p.hearts,
+    lessonInProgress: r.review ? p.lessonInProgress : null,
     history: addHistory(p, {
       at: Date.now(),
-      kind: r.practice ? 'practice' : 'lesson',
-      title: findLevel(r.levelId)?.title ?? r.levelId,
+      kind: r.review ? 'review' : r.practice ? 'practice' : 'lesson',
+      title: r.review ? 'Revisão de erros' : (findLevel(r.levelId)?.title ?? r.levelId),
       xp,
       mistakes: r.mistakes,
     }),
@@ -191,13 +290,20 @@ export function completeLesson(p: UserProfile, r: LessonResult): { profile: User
 
   const newBadges = earnedBadges(next, r).filter((b) => !p.badges.includes(b));
   next = { ...next, badges: [...p.badges, ...newBadges] };
-  return { profile: next, reward: { xp, newBadges, streak, streakIncreased } };
+  return {
+    profile: next,
+    reward: { xp, newBadges, streak, streakIncreased, dailyXp, dailyGoal: goal, dailyGoalReached },
+  };
 }
 
 function earnedBadges(p: UserProfile, r: LessonResult) {
   const out: string[] = [];
   if (p.completedLevels.length >= 1) out.push('first_lesson');
-  if (r.mistakes === 0 && !r.practice) out.push('perfect');
+  if (r.mistakes === 0 && !r.practice && !r.review) out.push('perfect');
+  if (r.review) out.push('first_review');
+  if (p.goalDays >= 1) out.push('goal_1');
+  if (p.goalDays >= 7) out.push('goal_7');
+  if (p.mastered >= 10) out.push('mastered_10');
   if (p.streak >= 3) out.push('streak_3');
   if (p.streak >= 7) out.push('streak_7');
   if (p.xp >= 100) out.push('xp_100');

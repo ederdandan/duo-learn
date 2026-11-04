@@ -1,5 +1,6 @@
 import { Trophy } from 'lucide-react';
 import { useStore } from '../store/AppStore';
+import { Avatar } from '../components/Avatar';
 import { leagueTier } from '../lib/rules';
 import { daysUntilWeekReset } from '../lib/dates';
 
@@ -41,7 +42,7 @@ export function LeaderboardPage() {
               className={`flex items-center gap-4 px-5 py-4 ${p.id === active?.id ? 'bg-brand-50' : ''}`}
             >
               <span className="w-8 text-center text-xl font-extrabold text-slate-400">{MEDALS[i] ?? i + 1}</span>
-              <span className="text-4xl">{p.avatar}</span>
+              <Avatar profile={p} size="md" />
               <div className="flex-1">
                 <p className="font-extrabold">
                   {p.name} {p.id === active?.id && <span className="text-sm text-brand-600">(você)</span>}

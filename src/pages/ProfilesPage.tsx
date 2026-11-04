@@ -4,6 +4,8 @@ import type { AgeGroup } from '../types';
 import { useStore } from '../store/AppStore';
 import { AGE_GROUPS, MAX_HEARTS, newProfile } from '../lib/rules';
 import { HeartsPicker } from '../components/HeartsPicker';
+import { Avatar } from '../components/Avatar';
+import { PhotoPicker } from '../components/PhotoPicker';
 import { Button } from '../components/Button';
 import { ImportButton } from '../components/BackupControls';
 
@@ -31,7 +33,7 @@ export function ProfilesPage() {
                 onClick={() => selectProfile(p.id)}
                 className="flex flex-col items-center gap-1 rounded-3xl border-2 border-b-4 border-slate-200 bg-white p-5 transition hover:border-brand-500 hover:bg-brand-50"
               >
-                <span className="text-5xl">{p.avatar}</span>
+                <Avatar profile={p} size="lg" />
                 <span className="text-lg font-extrabold">{p.name}</span>
                 <span className="text-xs font-bold uppercase text-slate-400">
                   {AGE_GROUPS[p.ageGroup].label} · {p.xp} XP
@@ -63,11 +65,12 @@ function CreateProfile({ onDone, canCancel }: { onDone: () => void; canCancel: b
   const [avatar, setAvatar] = useState(AVATARS[0]);
   const [ageGroup, setAgeGroup] = useState<AgeGroup>('adults');
   const [hearts, setHearts] = useState(MAX_HEARTS);
+  const [photo, setPhoto] = useState<string | null>(null);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
-    addProfile(newProfile(name, avatar, ageGroup, hearts));
+    addProfile(newProfile(name, avatar, ageGroup, hearts, photo));
     onDone();
   }
 
@@ -88,8 +91,15 @@ function CreateProfile({ onDone, canCancel }: { onDone: () => void; canCancel: b
       </label>
 
       <fieldset>
-        <legend className="mb-2 font-bold text-slate-600">Avatar</legend>
-        <div className="grid grid-cols-8 gap-2">
+        <legend className="mb-2 font-bold text-slate-600">Foto ou avatar</legend>
+        <div className="mb-3 flex items-center gap-4">
+          <Avatar profile={{ avatar, photo, name: name || 'perfil' }} size="lg" />
+          <PhotoPicker photo={photo} onChange={setPhoto} />
+        </div>
+        <p className="mb-2 text-sm text-slate-500">
+          {photo ? 'A foto aparece no lugar do avatar (inclusive no ranking).' : 'Sem foto? Escolha um avatar:'}
+        </p>
+        <div className={`grid grid-cols-8 gap-2 ${photo ? 'opacity-40' : ''}`}>
           {AVATARS.map((a) => (
             <button
               type="button"

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Map, Trophy, User } from 'lucide-react';
 import { useStore } from './store/AppStore';
 import { StatsBar } from './components/StatsBar';
+import { Avatar } from './components/Avatar';
 import { ProfilesPage } from './pages/ProfilesPage';
 import { PathPage } from './pages/PathPage';
 import { LessonPage } from './pages/LessonPage';
@@ -23,7 +24,7 @@ const TABS: Array<{ id: Tab; label: string; icon: typeof Map }> = [
 export default function App() {
   const { active } = useStore();
   const [tab, setTab] = useState<Tab>('path');
-  const [lesson, setLesson] = useState<{ levelId: string; practice: boolean } | null>(null);
+  const [lesson, setLesson] = useState<{ levelId: string; practice: boolean; review?: boolean } | null>(null);
 
   useEffect(() => {
     document.documentElement.style.fontSize = active ? FONT_SIZE[active.ageGroup] : '';
@@ -48,14 +49,19 @@ export default function App() {
     <div className="mx-auto flex min-h-dvh max-w-2xl flex-col">
       <header className="sticky top-0 z-10 flex items-center justify-between border-b-2 border-slate-200 bg-slate-50/95 px-4 py-3 backdrop-blur">
         <span className="flex items-center gap-2 font-extrabold">
-          <span className="text-2xl">{active.avatar}</span>
+          <Avatar profile={active} size="sm" />
           <span className="hidden sm:inline">{active.name}</span>
         </span>
         <StatsBar profile={active} />
       </header>
 
       <main className="flex-1 px-4 py-6">
-        {tab === 'path' && <PathPage onStart={(levelId, practice) => setLesson({ levelId, practice })} />}
+        {tab === 'path' && (
+          <PathPage
+            onStart={(levelId, practice) => setLesson({ levelId, practice })}
+            onReview={() => setLesson({ levelId: '', practice: false, review: true })}
+          />
+        )}
         {tab === 'ranking' && <LeaderboardPage />}
         {tab === 'profile' && <ProfilePage />}
       </main>

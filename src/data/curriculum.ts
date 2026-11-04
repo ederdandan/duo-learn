@@ -16,6 +16,14 @@ export function findLevel(id: string) {
   return everyLevel.find((l) => l.id === id);
 }
 
+export function findExercise(id: string) {
+  for (const l of everyLevel) {
+    const e = l.exercises.find((x) => x.id === id);
+    if (e) return e;
+  }
+  return undefined;
+}
+
 export function findUnitOfLevel(id: string) {
   return Object.values(tracks)
     .flat()

@@ -37,6 +37,7 @@ export function parseState(data: unknown): AppState {
     )
     .map((p): UserProfile => ({
       avatar: '🙂',
+      photo: null,
       ageGroup: 'adults' as const,
       xp: 0,
       weeklyXp: 0,
@@ -54,6 +55,12 @@ export function parseState(data: unknown): AppState {
       history: [],
       answers: { correct: 0, wrong: 0 },
       inactivityResetFor: null,
+      dailyGoal: 20,
+      dailyXp: 0,
+      dailyDate: null,
+      goalDays: 0,
+      reviews: {},
+      mastered: 0,
       notice: null,
       ...p,
     }));

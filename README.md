@@ -61,6 +61,9 @@ src/
 | Sair no meio da lição | o progresso é salvo a cada resposta; na trilha aparece "Continuar" |
 | 5 dias sem estudar | a **etapa atual** recomeça; etapas anteriores, XP, conquistas e histórico ficam |
 | Histórico | cada lição, treino e reinício fica registrado no Perfil, com acertos e erros |
+| Meta diária | 10, 20, 30 ou 50 XP por dia (no Perfil). Barra na trilha, contador 🎯 no topo, comemoração ao bater |
+| Revisão de erros | todo exercício errado entra na revisão. Acertou → volta em 1, 3, 7 e 14 dias; depois de 5 acertos seguidos está fixado. Errou → volta amanhã. Não gasta corações, recupera 1 e dá 10 XP |
+| Foto do perfil | opcional (câmera ou galeria); é reduzida para 160×160 (~5 KB) e aparece no topo, na lista de perfis e no ranking |
 | Liga semanal | ranking por `weeklyXp`, zera toda segunda 00:00 |
 | Bloqueio de sequência | 50 XP, máximo 2 — protege um dia sem estudar |
 
@@ -106,7 +109,8 @@ Depois rode `npm run check:content`: ele confere se não há perguntas repetidas
 - [x] Modo de escuta (ouvir e transcrever)
 - [ ] Criador de lições pela interface (para pais/avós criarem listas próprias)
 - [ ] PWA / offline (manifest + service worker)
-- [ ] Repetição espaçada: revisar itens errados nos dias seguintes
+- [x] Revisão de erros com repetição espaçada
+- [x] Meta diária
 - [x] Trilha própria para cada faixa etária (100 perguntas cada)
 - [x] Erros permitidos configuráveis por perfil
 - [x] Continuar lição de onde parou + histórico

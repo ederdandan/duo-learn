@@ -9,11 +9,15 @@ import {
   MAX_STREAK_FREEZES,
   STREAK_FREEZE_COST,
   buyStreakFreeze,
+  DAILY_GOAL_OPTIONS,
+  dailyGoal,
   maxHearts,
   setMaxHearts,
 } from '../lib/rules';
 import { Button } from '../components/Button';
 import { HeartsPicker } from '../components/HeartsPicker';
+import { Avatar } from '../components/Avatar';
+import { PhotoPicker } from '../components/PhotoPicker';
 import { ExportButton, ImportButton } from '../components/BackupControls';
 
 export function ProfilePage() {
@@ -33,12 +37,13 @@ export function ProfilePage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <span className="text-7xl">{active.avatar}</span>
+        <Avatar profile={active} size="xl" />
         <div>
           <h1 className="text-2xl font-extrabold">{active.name}</h1>
-          <p className="text-slate-500">
+          <p className="mb-2 text-slate-500">
             {AGE_GROUPS[active.ageGroup].emoji} Modo {AGE_GROUPS[active.ageGroup].label}
           </p>
+          <PhotoPicker photo={active.photo} onChange={(photo) => updateActive((p) => ({ ...p, photo }))} />
         </div>
       </div>
 
@@ -51,7 +56,29 @@ export function ProfilePage() {
         <Stat label="Respostas erradas" value={active.answers.wrong} icon="❌" />
         <Stat label="Taxa de acerto" value={`${accuracy}%`} icon="🎯" />
         <Stat label="Lições feitas" value={active.history.filter((h) => h.kind === 'lesson').length} icon="📚" />
+        <Stat label="Metas batidas" value={active.goalDays} icon="🎯" />
+        <Stat label="Para revisar" value={Object.keys(active.reviews).length} icon="🔁" />
+        <Stat label="Erros fixados" value={active.mastered} icon="🧠" />
       </div>
+
+      <section className="rounded-3xl border-2 border-slate-200 bg-white p-5">
+        <h2 className="mb-1 text-lg font-extrabold">🎯 Meta diária</h2>
+        <p className="mb-3 text-sm text-slate-500">Quanto XP você quer ganhar por dia. Uma lição dá 20 XP.</p>
+        <div className="grid grid-cols-4 gap-2">
+          {DAILY_GOAL_OPTIONS.map((g, i) => (
+            <button
+              key={g}
+              onClick={() => updateActive((p) => ({ ...p, dailyGoal: g }))}
+              className={`rounded-2xl border-2 border-b-4 p-2 text-center transition ${
+                dailyGoal(active) === g ? 'border-emerald-400 bg-emerald-50 text-emerald-700' : 'border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              <span className="block text-xl font-extrabold">{g} XP</span>
+              <span className="text-xs font-bold text-slate-500">{['Leve', 'Regular', 'Sério', 'Intenso'][i]}</span>
+            </button>
+          ))}
+        </div>
+      </section>
 
       <section className="rounded-3xl border-2 border-slate-200 bg-white p-5">
         <h2 className="mb-1 text-lg font-extrabold">❤️ Erros permitidos</h2>
@@ -145,6 +172,7 @@ export function ProfilePage() {
 const KIND = {
   lesson: { icon: '📘', label: 'Lição' },
   practice: { icon: '💪', label: 'Treino' },
+  review: { icon: '🔁', label: 'Revisão' },
   reset: { icon: '⏰', label: 'Etapa reiniciada' },
 } as const;
 

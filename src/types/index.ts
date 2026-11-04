@@ -7,6 +7,8 @@ export interface UserProfile {
   id: string;
   name: string;
   avatar: string;
+  /** Foto do perfil (data URL JPEG pequena). Se existir, aparece no lugar do emoji. */
+  photo: string | null;
   ageGroup: AgeGroup;
   xp: number;
   weeklyXp: number;
@@ -35,6 +37,26 @@ export interface UserProfile {
   inactivityResetFor: string | null;
   /** Aviso a mostrar na trilha (ex.: etapa reiniciada). */
   notice: string | null;
+  /** Meta diária de XP escolhida pela pessoa. */
+  dailyGoal: number;
+  /** XP ganho no dia `dailyDate`. */
+  dailyXp: number;
+  dailyDate: string | null;
+  /** Quantos dias a meta diária foi batida. */
+  goalDays: number;
+  /** Exercícios errados aguardando revisão, por id do exercício. */
+  reviews: Record<string, ReviewItem>;
+  /** Itens que saíram da revisão por terem sido fixados. */
+  mastered: number;
+}
+
+export interface ReviewItem {
+  /** Caixa de Leitner (0 = errou agora). */
+  box: number;
+  /** Quando volta para revisão (ms). */
+  due: number;
+  /** Quantas vezes já errou. */
+  misses: number;
 }
 
 export interface LessonProgress {
@@ -50,7 +72,7 @@ export interface LessonProgress {
 
 export interface HistoryEntry {
   at: number;
-  kind: 'lesson' | 'practice' | 'reset';
+  kind: 'lesson' | 'practice' | 'review' | 'reset';
   title: string;
   xp: number;
   mistakes?: number;

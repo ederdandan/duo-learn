@@ -28,6 +28,8 @@ export function normalize(text: string) {
   let t = text.toLowerCase().replace(/[’`]/g, "'");
   for (const [k, v] of Object.entries(CONTRACTIONS)) t = t.replace(new RegExp(`\\b${k}\\b`, 'g'), v);
   return t
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '') // tira acentos: "Sao Paulo" = "São Paulo"
     .replace(/[^\p{L}\p{N}\s]/gu, '')
     .replace(/\s+/g, ' ')
     .trim();

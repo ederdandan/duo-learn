@@ -1,6 +1,6 @@
-import { Flame, Heart, Zap } from 'lucide-react';
+import { Flame, Heart, Target, Zap } from 'lucide-react';
 import type { UserProfile } from '../types';
-import { maxHearts, msToNextHeart } from '../lib/rules';
+import { dailyGoal, dailyXpToday, maxHearts, msToNextHeart } from '../lib/rules';
 import { useNow } from '../lib/useNow';
 
 export function formatMs(ms: number) {
@@ -13,11 +13,17 @@ export function StatsBar({ profile }: { profile: UserProfile }) {
   const now = useNow(1000);
   const next = msToNextHeart(profile, now);
   return (
-    <div className="flex items-center gap-4 font-extrabold">
+    <div className="flex items-center gap-3 font-extrabold sm:gap-4">
       <span className="flex items-center gap-1 text-orange-500" title="Dias seguidos">
         <Flame className="size-5" fill="currentColor" /> {profile.streak}
       </span>
-      <span className="flex items-center gap-1 text-amber-500" title="XP total">
+      <span
+        className={`flex items-center gap-1 ${dailyXpToday(profile) >= dailyGoal(profile) ? 'text-emerald-500' : 'text-brand-600'}`}
+        title="Meta de hoje"
+      >
+        <Target className="size-5" /> {Math.min(dailyXpToday(profile), dailyGoal(profile))}/{dailyGoal(profile)}
+      </span>
+      <span className="hidden items-center gap-1 text-amber-500 sm:flex" title="XP total">
         <Zap className="size-5" fill="currentColor" /> {profile.xp}
       </span>
       <span

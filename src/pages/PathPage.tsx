@@ -3,15 +3,17 @@ import { findLevel, isLevelUnlocked, trackLevels, tracks } from '../data/curricu
 import { useStore } from '../store/AppStore';
 import { AGE_GROUPS, INACTIVITY_DAYS } from '../lib/rules';
 import type { AgeGroup, Level } from '../types';
+import { DailyPanel } from '../components/DailyPanel';
 
 interface Props {
   onStart: (levelId: string, practice: boolean) => void;
+  onReview: () => void;
 }
 
 // Deslocamento horizontal dos nós para formar um caminho em zigue-zague.
 const OFFSETS = [0, 60, 90, 60, 0, -60, -90, -60];
 
-export function PathPage({ onStart }: Props) {
+export function PathPage({ onStart, onReview }: Props) {
   const { active, updateActive } = useStore();
   if (!active) return null;
   const g = active.ageGroup;
@@ -59,11 +61,13 @@ export function PathPage({ onStart }: Props) {
         </button>
       )}
 
+      <DailyPanel profile={active} onReview={onReview} />
+
       {noHearts && (
         <div className="rounded-2xl border-2 border-rose-200 bg-rose-50 p-4 text-rose-700">
           <p className="font-extrabold">💔 Sem corações por enquanto</p>
           <p className="text-sm">
-            Toque numa lição já concluída para <b>treinar</b> e recuperar 1 coração — ou espere a recarga.
+            Faça a <b>revisão de erros</b> ou <b>treine</b> uma lição já concluída para recuperar 1 coração — ou espere a recarga.
           </p>
         </div>
       )}
